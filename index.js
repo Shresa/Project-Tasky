@@ -1,7 +1,8 @@
-//Parent Element to store cards//
+//Parent Element to store cards
 const taskContainer = document.querySelector(".task_container");
 console.log(taskContainer);
 
+const globalStore = [];
 const newCard = ({
     id,
     imageUrl,
@@ -34,6 +35,24 @@ const newCard = ({
 </div>
 </div>`;
 
+
+const loadInitialTaskCards = () => {
+// access localstorage 
+  const getInitialData = localStorage.getItem("tasky");
+  if(!getInitialData) return;
+
+// convert strinfield-object to object 
+  const { cards }= JSON.parse(getInitialData);
+
+// map around the array to generate HTML card and inject it to DOM
+  cards.map((cardObject) => {
+    const createNewCard = newCard(cardObject);
+    taskContainer.insertAdjacentHTML("beforeend", createNewCard);
+    globalStore.push(cardObject);
+  });
+};
+
+
 const saveChanges = () => {
     const taskData = {
         id:`${Date.now()}`,
@@ -46,5 +65,7 @@ const saveChanges = () => {
     const createNewCard = newCard(taskData);
 
     taskContainer.insertAdjacentHTML("beforeend", createNewCard);
+    globalStore.push(taskData);
     
+    localStorage.setItem("tasky",JSON.stringify({cards: globalStore}));
 };
