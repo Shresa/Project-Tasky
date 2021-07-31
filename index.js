@@ -1,24 +1,23 @@
 //Parent Element to store cards
 const taskContainer = document.querySelector(".task_container");
-console.log(taskContainer);
 
+//Global Store
 const globalStore = [];
 const newCard = ({
     id,
     imageUrl,
     taskTitle,
     taskDescription,
-    taskType
-
+    taskType,
 }) => 
 `<div class="col-md-6 col-lg-4" id=${id}>
 <div class="card">
   <div class="card-header d-flex justify-content-end gap-2">
-    <button type="button" class="btn btn-outline-success">
-      <i class="fas fa-pencil-alt"></i>
+    <button type="button" id=${id} class="btn btn-outline-success" onclick="editCard.apply(this,arguments)">
+      <i class="fas fa-pencil-alt" id=${id} onclick="editCard.apply(this,arguments)"></i>
     </button>
-    <button type="button" class="btn btn-outline-danger">
-      <i class="fas fa-trash-alt"></i>
+    <button type="button" id=${id} class="btn btn-outline-danger" onclick="deleteCard.apply(this,arguments)">
+      <i class="fas fa-trash-alt" id=${id} onclick="deleteCard.apply(this,arguments)" ></i>
     </button>
   </div>
   <img src = ${imageUrl}
@@ -41,7 +40,7 @@ const loadInitialTaskCards = () => {
   const getInitialData = localStorage.getItem("tasky");
   if(!getInitialData) return;
 
-// convert strinfield-object to object 
+// convert stringified-object to object 
   const { cards }= JSON.parse(getInitialData);
 
 // map around the array to generate HTML card and inject it to DOM
@@ -52,6 +51,8 @@ const loadInitialTaskCards = () => {
   });
 };
 
+const updateLocalStoreage= () =>
+    localStorage.setItem("tasky", JSON.stringify({cards: globalStore}));
 
 const saveChanges = () => {
     const taskData = {
@@ -62,10 +63,63 @@ const saveChanges = () => {
         taskDescription: document.getElementById("taskdescription").value,
     };
 
+      // HTML code 
     const createNewCard = newCard(taskData);
 
     taskContainer.insertAdjacentHTML("beforeend", createNewCard);
     globalStore.push(taskData);
-    
-    localStorage.setItem("tasky",JSON.stringify({cards: globalStore}));
+
+    //add to localstorage
+    updateLocalStorage();
 };
+
+const deleteCard = (event) => {
+  // id
+    event = window.event;
+    const targetID = event.target.id;
+    const tagname = event.target.tagName; //BUTTON
+
+  // search the globalStore, remove the object which matches with the id
+  globalStore = globalStore.filter((cardObject) => cardObject.id !== targetID);
+
+  updateLocalStorage();
+
+  // access DOM to remove them
+
+  if(tagname == "BUTTON"){
+    // task_container
+    return taskContainer.removeChild(
+      event.target.parentNode.parentNode.parentNode  // col-lg-4
+    );
+    }
+
+    // task_container
+    return taskContainer.removeChild(
+      event.target.parentNode.parentNode.parentNode.parentNode  // col-lg-4
+    );
+ }
+
+ const editCard = (event) => {
+    event = window.event;
+    const targetID = event.target.id;
+    const tagname = event.target.tagName;
+
+    let parentElement;
+
+    if (tagname === "BUTTON") {
+      parentElement = event.target.parentNode.parentNode;
+    } else {
+      parentElement = event.target.parentNode.parentNode.parentNode;
+    }
+    
+    let taskTitle = parentElement.childNodes[5].childNodes[1];
+    let taskDescription = parentElement.childNodes[5].childNodes[3];
+    let taskType = parentElement.childNodes[5].childNodes[5];
+    let submitButton = parentElement.childNodes[7].childNodes[1];
+
+    taskTitle.setAttribute("contenteditable", "true");
+    taskDescription.setAttribute("contenteditable", "true");
+    taskType.setAttribute("contenteditable", "true");
+    submitButton.innerHTML = "Save Changes";
+};
+
